@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valentine's Date Planner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #ff6b9d 0%, #c06c84 50%, #f67280 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: clamp(20px, 5vw, 50px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            max-width: 600px;
+            width: 100%;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #ff6b9d;
+            text-align: center;
+            margin-bottom: 24px;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .question {
+            text-align: center;
+            font-size: clamp(1.25rem, 4vw, 1.875rem);
+            color: #333;
+            margin-bottom: 32px;
+            font-weight: 500;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            position: relative;
+            min-height: 200px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        button {
+            padding: 14px 32px;
+            font-size: clamp(1rem, 2.5vw, 1.125rem);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .yes-btn {
+            background: #ff6b9d;
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
+            position: relative;
+        }
+
+        .yes-btn:hover {
+            background: #ff5288;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 107, 157, 0.4);
+        }
+
+        .yes-btn:active {
+            transform: translateY(0);
+        }
+
+        .no-btn {
+            background: #e0e0e0;
+            color: #666;
+            position: relative;
+            transition: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .date-options {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .option-btn {
+            background: #fafafa;
+            color: #333;
+            padding: 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 16px;
+            font-size: clamp(1rem, 2.5vw, 1.125rem);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .option-btn:hover {
+            background: #fff0f5;
+            border-color: #ff6b9d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 157, 0.15);
+        }
+
+        .option-btn:active {
+            transform: translateY(0);
+        }
+
+        .option-btn.selected {
+            background: #ff6b9d;
+            color: white;
+            border-color: #ff6b9d;
+        }
+
+        .sub-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .sub-option-btn {
+            background: #fafafa;
+            padding: 14px 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: clamp(0.875rem, 2vw, 1rem);
+            text-align: center;
+        }
+
+        .sub-option-btn:hover {
+            background: #fff0f5;
+            border-color: #ff6b9d;
+            transform: translateY(-2px);
+        }
+
+        .sub-option-btn:active {
+            transform: translateY(0);
+        }
+
+        .sub-option-btn.selected {
+            background: #ff6b9d;
+            color: white;
+            border-color: #ff6b9d;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="time"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: clamp(0.875rem, 2.5vw, 1rem);
+            margin-top: 8px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #ff6b9d;
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: clamp(0.875rem, 2.5vw, 1rem);
+        }
+
+        .next-btn, .back-btn {
+            background: #ff6b9d;
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 50px;
+            font-size: clamp(1rem, 2.5vw, 1.125rem);
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
+        }
+
+        .next-btn:hover, .back-btn:hover {
+            background: #ff5288;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 107, 157, 0.4);
+        }
+
+        .next-btn:active, .back-btn:active {
+            transform: translateY(0);
+        }
+
+        .back-btn {
+            background: #9e9e9e;
+            margin-right: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-btn:hover {
+            background: #757575;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .receipt {
+            background: #fafafa;
+            padding: clamp(20px, 4vw, 30px);
+            border: 2px dashed #ccc;
+            border-radius: 16px;
+        }
+
+        .receipt h2 {
+            text-align: center;
+            color: #ff6b9d;
+            margin-bottom: 24px;
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: 700;
+        }
+
+        .receipt-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .receipt-label {
+            font-weight: 600;
+            color: #555;
+            font-size: clamp(0.875rem, 2.5vw, 1rem);
+            min-width: 100px;
+        }
+
+        .receipt-value {
+            color: #333;
+            text-align: right;
+            word-break: break-word;
+            font-size: clamp(0.875rem, 2.5vw, 1rem);
+        }
+
+        .receipt-message {
+            text-align: center;
+            margin-top: 24px;
+            color: #ff6b9d;
+            font-size: clamp(1.125rem, 3vw, 1.5rem);
+            font-weight: 600;
+        }
+
+        .download-btn {
+            background: #4CAF50;
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 50px;
+            font-size: clamp(1rem, 2.5vw, 1.125rem);
+            cursor: pointer;
+            margin-top: 24px;
+            width: 100%;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .download-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px;
+            backdrop-filter: blur(10px);
+        }
+
+        footer p {
+            margin: 6px 0;
+            font-size: clamp(0.875rem, 2.5vw, 1rem);
+        }
+
+        .heart {
+            color: #fff;
+            animation: heartbeat 1.5s infinite;
+            display: inline-block;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 20px;
+            }
+
+            .sub-options {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+
+            .receipt-line {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .receipt-value {
+                text-align: left;
+            }
+
+            button {
+                padding: 12px 24px;
+            }
+
+            .button-row button {
+                flex: 1;
+                min-width: 100px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .sub-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Screen 1: Initial Question -->
+        <div id="screen1">
+            <h1><i class="fas fa-heart"></i> Valentine's Date <i class="fas fa-heart"></i></h1>
+            <p class="question">Will you be my date?</p>
+            <div class="button-container">
+                <button class="yes-btn" onclick="showDateOptions()">Yes! <i class="fas fa-heart"></i></button>
+                <button class="no-btn" id="noBtn" onmouseenter="moveButton()">No</button>
+            </div>
+        </div>
+
+        <!-- Screen 2: Date Type Selection -->
+        <div id="screen2" class="hidden">
+            <h1>Choose Your Date Type <i class="fas fa-heart"></i></h1>
+            <div class="date-options">
+                <button class="option-btn" onclick="selectDateType('restaurant')"><i class="fas fa-utensils"></i> Restaurant Date</button>
+                <button class="option-btn" onclick="selectDateType('movie')"><i class="fas fa-film"></i> Movie Date</button>
+                <button class="option-btn" onclick="selectDateType('walk')"><i class="fas fa-walking"></i> Take a Walk Together</button>
+                <button class="option-btn" onclick="selectDateType('market')"><i class="fas fa-moon"></i> Go to Night Market</button>
+                <button class="option-btn" onclick="selectDateType('coffee')"><i class="fas fa-coffee"></i> Coffee Date</button>
+            </div>
+        </div>
+
+        <!-- Screen 3: Specific Location/Details -->
+        <div id="screen3" class="hidden">
+            <h1 id="screen3Title">Select Details <i class="fas fa-heart"></i></h1>
+            <div id="specificOptions"></div>
+            <div class="button-row">
+                <button class="back-btn" onclick="backToDateType()">Back</button>
+                <button class="next-btn" onclick="showTimeSelection()">Next</button>
+            </div>
+        </div>
+
+        <!-- Screen 4: Time, Date, and Names -->
+        <div id="screen4" class="hidden">
+            <h1>Final Details <i class="fas fa-heart"></i></h1>
+            <div class="form-group">
+                <label><i class="far fa-calendar"></i> Date:</label>
+                <input type="date" id="dateInput" required>
+            </div>
+            <div class="form-group">
+                <label><i class="far fa-clock"></i> Time:</label>
+                <input type="time" id="timeInput" required>
+            </div>
+            <div class="form-group">
+                <label><i class="far fa-user"></i> Your Name:</label>
+                <input type="text" id="yourName" placeholder="Enter your name" required>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-user-heart"></i> Their Name:</label>
+                <input type="text" id="theirName" placeholder="Enter their name" required>
+            </div>
+            <div class="button-row">
+                <button class="back-btn" onclick="backToDetails()">Back</button>
+                <button class="next-btn" onclick="showReceipt()">Generate Receipt</button>
+            </div>
+        </div>
+
+        <!-- Screen 5: Receipt -->
+        <div id="screen5" class="hidden">
+            <div class="receipt" id="receiptContent">
+                <h2><i class="fas fa-heart"></i> Date Receipt <i class="fas fa-heart"></i></h2>
+                <div class="receipt-line">
+                    <span class="receipt-label">From:</span>
+                    <span class="receipt-value" id="receiptYourName"></span>
+                </div>
+                <div class="receipt-line">
+                    <span class="receipt-label">To:</span>
+                    <span class="receipt-value" id="receiptTheirName"></span>
+                </div>
+                <div class="receipt-line">
+                    <span class="receipt-label">Date Type:</span>
+                    <span class="receipt-value" id="receiptDateType"></span>
+                </div>
+                <div class="receipt-line">
+                    <span class="receipt-label">Location/Details:</span>
+                    <span class="receipt-value" id="receiptLocation"></span>
+                </div>
+                <div class="receipt-line">
+                    <span class="receipt-label">Date:</span>
+                    <span class="receipt-value" id="receiptDate"></span>
+                </div>
+                <div class="receipt-line">
+                    <span class="receipt-label">Time:</span>
+                    <span class="receipt-value" id="receiptTime"></span>
+                </div>
+                <div class="receipt-message">
+                    Can't wait to see you! <span class="heart"><i class="fas fa-heart"></i></span>
+                </div>
+            </div>
+            <button class="download-btn" onclick="downloadReceipt()"><i class="fas fa-download"></i> Download Receipt</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>Made with <span class="heart"><i class="fas fa-heart"></i></span> by <strong>Bryan Kim Calipes</strong></p>
+        <p>Buy me a coffee <i class="fas fa-coffee"></i> | GCash: <strong>09930458960</strong></p>
+    </footer>
+
+    <script>
+        let dateData = {
+            dateType: '',
+            location: '',
+            date: '',
+            time: '',
+            yourName: '',
+            theirName: ''
+        };
+
+        function moveButton() {
+            const noBtn = document.getElementById('noBtn');
+            const container = document.querySelector('.container');
+            const containerRect = container.getBoundingClientRect();
+            const btnRect = noBtn.getBoundingClientRect();
+            
+            // Calculate boundaries within the container
+            const maxX = containerRect.width - btnRect.width - 40; // 40px padding
+            const maxY = containerRect.height - btnRect.height - 40;
+            
+            // Generate random position
+            const randomX = Math.random() * maxX + 20; // 20px minimum margin
+            const randomY = Math.random() * maxY + 20;
+            
+            // Apply absolute positioning
+            noBtn.style.position = 'absolute';
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+        }
+
+        function showDateOptions() {
+            document.getElementById('screen1').classList.add('hidden');
+            document.getElementById('screen2').classList.remove('hidden');
+        }
+
+        function selectDateType(type) {
+            dateData.dateType = type;
+            document.getElementById('screen2').classList.add('hidden');
+            document.getElementById('screen3').classList.remove('hidden');
+            
+            const title = document.getElementById('screen3Title');
+            const optionsDiv = document.getElementById('specificOptions');
+            
+            let html = '';
+            
+            switch(type) {
+                case 'restaurant':
+                    title.innerHTML = 'Choose a Restaurant <i class="fas fa-utensils"></i>';
+                    html = `
+                        <div class="sub-options">
+                            <button class="sub-option-btn" onclick="selectLocation('McDonald\'s')">McDonald's</button>
+                            <button class="sub-option-btn" onclick="selectLocation('Jollibee')">Jollibee</button>
+                            <button class="sub-option-btn" onclick="selectLocation('Sizzlers')">Sizzlers</button>
+                            <button class="sub-option-btn" onclick="selectLocation('KFC')">KFC</button>
+                            <button class="sub-option-btn" onclick="selectLocation('Greenwich')">Greenwich</button>
+                            <button class="sub-option-btn" onclick="selectLocation('Chowking')">Chowking</button>
+                            <button class="sub-option-btn" onclick="selectLocation('Inbox')">Inbox</button>
+                        </div>
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label>Or enter custom restaurant:</label>
+                            <input type="text" id="customLocation" placeholder="Enter restaurant name" onchange="selectLocation(this.value)">
+                        </div>
+                    `;
+                    break;
+                case 'movie':
+                    title.innerHTML = 'Movie Details <i class="fas fa-film"></i>';
+                    html = `
+                        <div class="form-group">
+                            <label>Movie Name:</label>
+                            <input type="text" id="customLocation" placeholder="Enter movie name" onchange="selectLocation(this.value)" required>
+                        </div>
+                    `;
+                    break;
+                case 'walk':
+                    title.innerHTML = 'Choose a Walking Place <i class="fas fa-walking"></i>';
+                    html = `
+                        <div class="sub-options">
+                            <button class="sub-option-btn" onclick="selectLocation('Boulevard')">Boulevard</button>
+                            <button class="sub-option-btn" onclick="selectLocation('Grandstand')">Grandstand</button>
+                            <button class="sub-option-btn" onclick="selectLocation('Luneta')">Luneta</button>
+                        </div>
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label>Or enter custom location:</label>
+                            <input type="text" id="customLocation" placeholder="Enter location" onchange="selectLocation(this.value)">
+                        </div>
+                    `;
+                    break;
+                case 'market':
+                    title.innerHTML = 'Night Market Details <i class="fas fa-moon"></i>';
+                    html = `
+                        <div class="form-group">
+                            <label>Night Market Location:</label>
+                            <input type="text" id="customLocation" placeholder="Enter night market location" onchange="selectLocation(this.value)" required>
+                        </div>
+                    `;
+                    break;
+                case 'coffee':
+                    title.innerHTML = 'Choose a Coffee Shop <i class="fas fa-coffee"></i>';
+                    html = `
+                        <div class="sub-options">
+                            <button class="sub-option-btn" onclick="selectLocation('Bo\'s Coffee')">Bo's Coffee</button>
+                            <button class="sub-option-btn" onclick="selectLocation('Brewing Spot')">Brewing Spot</button>
+                            <button class="sub-option-btn" onclick="selectLocation('Don Macchiatos')">Don Macchiatos</button>
+                        </div>
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label>Or enter custom coffee shop:</label>
+                            <input type="text" id="customLocation" placeholder="Enter coffee shop name" onchange="selectLocation(this.value)">
+                        </div>
+                    `;
+                    break;
+            }
+            
+            optionsDiv.innerHTML = html;
+        }
+
+        function selectLocation(location) {
+            dateData.location = location;
+            // Remove selected class from all buttons
+            document.querySelectorAll('.sub-option-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            // Add selected class to clicked button
+            event.target.classList.add('selected');
+        }
+
+        function backToDateType() {
+            document.getElementById('screen3').classList.add('hidden');
+            document.getElementById('screen2').classList.remove('hidden');
+        }
+
+        function showTimeSelection() {
+            if (!dateData.location) {
+                alert('Please select or enter a location!');
+                return;
+            }
+            document.getElementById('screen3').classList.add('hidden');
+            document.getElementById('screen4').classList.remove('hidden');
+        }
+
+        function backToDetails() {
+            document.getElementById('screen4').classList.add('hidden');
+            document.getElementById('screen3').classList.remove('hidden');
+        }
+
+        function showReceipt() {
+            const date = document.getElementById('dateInput').value;
+            const time = document.getElementById('timeInput').value;
+            const yourName = document.getElementById('yourName').value;
+            const theirName = document.getElementById('theirName').value;
+            
+            if (!date || !time || !yourName || !theirName) {
+                alert('Please fill in all fields!');
+                return;
+            }
+            
+            dateData.date = date;
+            dateData.time = time;
+            dateData.yourName = yourName;
+            dateData.theirName = theirName;
+            
+            // Update receipt
+            document.getElementById('receiptYourName').textContent = yourName;
+            document.getElementById('receiptTheirName').textContent = theirName;
+            
+            const dateTypeNames = {
+                'restaurant': '<i class="fas fa-utensils"></i> Restaurant Date',
+                'movie': '<i class="fas fa-film"></i> Movie Date',
+                'walk': '<i class="fas fa-walking"></i> Walk Together',
+                'market': '<i class="fas fa-moon"></i> Night Market',
+                'coffee': '<i class="fas fa-coffee"></i> Coffee Date'
+            };
+            
+            document.getElementById('receiptDateType').innerHTML = dateTypeNames[dateData.dateType];
+            document.getElementById('receiptLocation').textContent = dateData.location;
+            document.getElementById('receiptDate').textContent = new Date(date).toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            document.getElementById('receiptTime').textContent = time;
+            
+            document.getElementById('screen4').classList.add('hidden');
+            document.getElementById('screen5').classList.remove('hidden');
+        }
+
+        function downloadReceipt() {
+            const receiptContent = document.getElementById('receiptContent');
+            
+            // Create a canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = 800;
+            canvas.height = 600;
+            
+            // Background
+            ctx.fillStyle = '#f9f9f9';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Border
+            ctx.strokeStyle = '#999';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([10, 5]);
+            ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+            ctx.setLineDash([]);
+            
+            // Title
+            ctx.fillStyle = '#ff6b9d';
+            ctx.font = 'bold 40px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Date Receipt', canvas.width / 2, 80);
+            
+            // Content
+            ctx.fillStyle = '#333';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'left';
+            
+            let y = 150;
+            const lineHeight = 50;
+            
+            const receiptData = [
+                { label: 'From:', value: dateData.yourName },
+                { label: 'To:', value: dateData.theirName },
+                { label: 'Date Type:', value: document.getElementById('receiptDateType').textContent },
+                { label: 'Location:', value: dateData.location },
+                { label: 'Date:', value: document.getElementById('receiptDate').textContent },
+                { label: 'Time:', value: dateData.time }
+            ];
+            
+            receiptData.forEach(item => {
+                ctx.fillStyle = '#555';
+                ctx.font = 'bold 24px Arial';
+                ctx.fillText(item.label, 60, y);
+                
+                ctx.fillStyle = '#333';
+                ctx.font = '24px Arial';
+                ctx.fillText(item.value, 250, y);
+                
+                // Line
+                ctx.strokeStyle = '#ddd';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(60, y + 10);
+                ctx.lineTo(canvas.width - 60, y + 10);
+                ctx.stroke();
+                
+                y += lineHeight;
+            });
+            
+            // Footer message
+            ctx.fillStyle = '#ff6b9d';
+            ctx.font = 'bold 28px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText("Can't wait to see you!", canvas.width / 2, y + 50);
+            
+            // Convert to blob and download
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Date-Receipt-${dateData.yourName}-${dateData.theirName}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
+    </script>
+</body>
+</html>
