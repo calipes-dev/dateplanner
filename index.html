@@ -5,6 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Valentine's Date Planner</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Analytics (Replace G-XXXXXXXXXX with your tracking ID if you want to use it) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
+    
+    <!-- CounterAPI.dev - Visitor Counter -->
+    <script>
+        // Track page visits using CounterAPI.dev
+        const counterToken = 'ut_Bh5LsHBeLUYNeCduzgAiDS8C6P8qKKDJNodzYjmd';
+        
+        // Increment visit counter
+        fetch(`https://app.counterapi.dev/v1/${counterToken}/valentine-visits/up`, {
+            method: 'POST'
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Total Visits:', data.count);
+                // Optional: Display visit count on the page
+                // You can add an element with id="visit-counter" to show this
+            })
+            .catch(error => console.log('Counter error:', error));
+    </script>
     <style>
         * {
             margin: 0;
@@ -20,7 +47,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 15px;
+            padding: 15px 15px 80px 15px;
         }
 
         .container {
@@ -317,20 +344,21 @@
         }
 
         footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
             text-align: center;
             color: white;
-            margin-top: 24px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.15);
-            border-radius: 16px;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 600px;
-            backdrop-filter: blur(10px);
+            z-index: 1000;
         }
 
         footer p {
-            margin: 6px 0;
-            font-size: clamp(0.875rem, 2.5vw, 1rem);
+            margin: 4px 0;
+            font-size: clamp(0.75rem, 2vw, 0.875rem);
         }
 
         .heart {
@@ -495,7 +523,7 @@
     <script>
         let dateData = {
             dateType: '',
-            location: '',
+            locations: [],
             date: '',
             time: '',
             yourName: '',
@@ -551,9 +579,10 @@
                             <button class="sub-option-btn" onclick="selectLocation('Inbox')">Inbox</button>
                         </div>
                         <div class="form-group" style="margin-top: 20px;">
-                            <label>Or enter custom restaurant:</label>
-                            <input type="text" id="customLocation" placeholder="Enter restaurant name" onchange="selectLocation(this.value)">
+                            <label>Or add custom restaurant:</label>
+                            <input type="text" id="customLocation" placeholder="Enter restaurant name and press Enter" onkeypress="handleCustomInput(event)">
                         </div>
+                        <div id="selectedLocations" style="margin-top: 15px; color: #666; font-size: 0.9em;"></div>
                     `;
                     break;
                 case 'movie':
@@ -561,8 +590,9 @@
                     html = `
                         <div class="form-group">
                             <label>Movie Name:</label>
-                            <input type="text" id="customLocation" placeholder="Enter movie name" onchange="selectLocation(this.value)" required>
+                            <input type="text" id="customLocation" placeholder="Enter movie name and press Enter" onkeypress="handleCustomInput(event)">
                         </div>
+                        <div id="selectedLocations" style="margin-top: 15px; color: #666; font-size: 0.9em;"></div>
                     `;
                     break;
                 case 'walk':
@@ -574,9 +604,10 @@
                             <button class="sub-option-btn" onclick="selectLocation('Luneta')">Luneta</button>
                         </div>
                         <div class="form-group" style="margin-top: 20px;">
-                            <label>Or enter custom location:</label>
-                            <input type="text" id="customLocation" placeholder="Enter location" onchange="selectLocation(this.value)">
+                            <label>Or add custom location:</label>
+                            <input type="text" id="customLocation" placeholder="Enter location and press Enter" onkeypress="handleCustomInput(event)">
                         </div>
+                        <div id="selectedLocations" style="margin-top: 15px; color: #666; font-size: 0.9em;"></div>
                     `;
                     break;
                 case 'market':
@@ -584,8 +615,9 @@
                     html = `
                         <div class="form-group">
                             <label>Night Market Location:</label>
-                            <input type="text" id="customLocation" placeholder="Enter night market location" onchange="selectLocation(this.value)" required>
+                            <input type="text" id="customLocation" placeholder="Enter night market location and press Enter" onkeypress="handleCustomInput(event)">
                         </div>
+                        <div id="selectedLocations" style="margin-top: 15px; color: #666; font-size: 0.9em;"></div>
                     `;
                     break;
                 case 'coffee':
@@ -597,9 +629,10 @@
                             <button class="sub-option-btn" onclick="selectLocation('Don Macchiatos')">Don Macchiatos</button>
                         </div>
                         <div class="form-group" style="margin-top: 20px;">
-                            <label>Or enter custom coffee shop:</label>
-                            <input type="text" id="customLocation" placeholder="Enter coffee shop name" onchange="selectLocation(this.value)">
+                            <label>Or add custom coffee shop:</label>
+                            <input type="text" id="customLocation" placeholder="Enter coffee shop name and press Enter" onkeypress="handleCustomInput(event)">
                         </div>
+                        <div id="selectedLocations" style="margin-top: 15px; color: #666; font-size: 0.9em;"></div>
                     `;
                     break;
             }
@@ -608,27 +641,73 @@
         }
 
         function selectLocation(location) {
-            dateData.location = location;
-            // Remove selected class from all buttons
+            // Toggle selection
+            const index = dateData.locations.indexOf(location);
+            if (index > -1) {
+                // Remove if already selected
+                dateData.locations.splice(index, 1);
+            } else {
+                // Add if not selected
+                dateData.locations.push(location);
+            }
+            
+            // Update button states
             document.querySelectorAll('.sub-option-btn').forEach(btn => {
-                btn.classList.remove('selected');
+                if (dateData.locations.includes(btn.textContent.trim())) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
             });
-            // Add selected class to clicked button
-            event.target.classList.add('selected');
+            
+            // Update display
+            updateSelectedLocationsDisplay();
+        }
+
+        function handleCustomInput(event) {
+            if (event.key === 'Enter') {
+                const input = event.target;
+                const value = input.value.trim();
+                if (value) {
+                    selectLocation(value);
+                    input.value = '';
+                    updateSelectedLocationsDisplay();
+                }
+            }
+        }
+
+        function updateSelectedLocationsDisplay() {
+            const display = document.getElementById('selectedLocations');
+            if (display) {
+                if (dateData.locations.length > 0) {
+                    display.innerHTML = '<strong>Selected:</strong> ' + dateData.locations.join(', ');
+                } else {
+                    display.innerHTML = '';
+                }
+            }
         }
 
         function backToDateType() {
             document.getElementById('screen3').classList.add('hidden');
             document.getElementById('screen2').classList.remove('hidden');
+            dateData.locations = []; // Reset locations when going back
         }
 
         function showTimeSelection() {
-            if (!dateData.location) {
-                alert('Please select or enter a location!');
+            if (dateData.locations.length === 0) {
+                alert('Please select at least one location!');
                 return;
             }
             document.getElementById('screen3').classList.add('hidden');
             document.getElementById('screen4').classList.remove('hidden');
+        }
+
+        function convertTo12Hour(time24) {
+            const [hours, minutes] = time24.split(':');
+            let hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            hour = hour % 12 || 12;
+            return `${hour}:${minutes} ${ampm}`;
         }
 
         function backToDetails() {
@@ -665,14 +744,22 @@
             };
             
             document.getElementById('receiptDateType').innerHTML = dateTypeNames[dateData.dateType];
-            document.getElementById('receiptLocation').textContent = dateData.location;
+            
+            // Display locations as a comma-separated list or bulleted list if multiple
+            const locationDisplay = dateData.locations.length > 1 
+                ? '<ul style="margin: 0; padding-left: 20px;">' + dateData.locations.map(loc => '<li>' + loc + '</li>').join('') + '</ul>'
+                : dateData.locations[0];
+            document.getElementById('receiptLocation').innerHTML = locationDisplay;
+            
             document.getElementById('receiptDate').textContent = new Date(date).toLocaleDateString('en-US', { 
                 weekday: 'long', 
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
             });
-            document.getElementById('receiptTime').textContent = time;
+            
+            // Convert to 12-hour format
+            document.getElementById('receiptTime').textContent = convertTo12Hour(time);
             
             document.getElementById('screen4').classList.add('hidden');
             document.getElementById('screen5').classList.remove('hidden');
@@ -687,7 +774,9 @@
             
             // Set canvas size
             canvas.width = 800;
-            canvas.height = 600;
+            const baseHeight = 600;
+            const extraHeight = dateData.locations.length > 1 ? (dateData.locations.length - 1) * 40 : 0;
+            canvas.height = baseHeight + extraHeight;
             
             // Background
             ctx.fillStyle = '#f9f9f9';
@@ -714,13 +803,14 @@
             let y = 150;
             const lineHeight = 50;
             
+            const dateTypeText = dateData.dateType.charAt(0).toUpperCase() + dateData.dateType.slice(1) + ' Date';
+            
             const receiptData = [
                 { label: 'From:', value: dateData.yourName },
                 { label: 'To:', value: dateData.theirName },
-                { label: 'Date Type:', value: document.getElementById('receiptDateType').textContent },
-                { label: 'Location:', value: dateData.location },
+                { label: 'Date Type:', value: dateTypeText },
                 { label: 'Date:', value: document.getElementById('receiptDate').textContent },
-                { label: 'Time:', value: dateData.time }
+                { label: 'Time:', value: convertTo12Hour(dateData.time) }
             ];
             
             receiptData.forEach(item => {
@@ -743,6 +833,34 @@
                 y += lineHeight;
             });
             
+            // Locations (can be multiple)
+            ctx.fillStyle = '#555';
+            ctx.font = 'bold 24px Arial';
+            ctx.fillText('Location(s):', 60, y);
+            
+            ctx.fillStyle = '#333';
+            ctx.font = '24px Arial';
+            
+            if (dateData.locations.length === 1) {
+                ctx.fillText(dateData.locations[0], 250, y);
+                y += lineHeight;
+            } else {
+                y += 10;
+                dateData.locations.forEach((loc, index) => {
+                    ctx.fillText('• ' + loc, 250, y);
+                    y += 35;
+                });
+                y += 15;
+            }
+            
+            // Line after locations
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(60, y);
+            ctx.lineTo(canvas.width - 60, y);
+            ctx.stroke();
+            
             // Footer message
             ctx.fillStyle = '#ff6b9d';
             ctx.font = 'bold 28px Arial';
@@ -763,5 +881,4 @@
         }
     </script>
 </body>
-
 </html>
